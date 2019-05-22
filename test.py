@@ -71,12 +71,8 @@ def add_language_frequency(frequency, lang):
     all_trigrams.append(list(frequency['trigrams'].keys()))
 
 
-def basic_plots_data_init():
+def letter_plot_data_init():
     letters_plot_data.clear()
-    digrams_plot_data.clear()
-    trigrams_plot_data.clear()
-    digram_contour.clear()
-    digram_contour.append(digrams_contour_diagram_init(None))
     for lang in active_languages:
         frequency = frequencies[lang]
         x_letters = get_intersection(all_letters)
@@ -87,6 +83,12 @@ def basic_plots_data_init():
             name=lang
         )
         )
+
+
+def digram_plot_data_init():
+    digrams_plot_data.clear()
+    for lang in active_languages:
+        frequency = frequencies[lang]
         x_digrams = get_intersection(all_digrams)
         digrams_plot_data.append(go.Scatter(
             x=x_digrams,
@@ -95,6 +97,12 @@ def basic_plots_data_init():
             name=lang
         )
         )
+
+
+def trigram_plot_data_init():
+    trigrams_plot_data.clear()
+    for lang in active_languages:
+        frequency = frequencies[lang]
         x_trigrams = get_intersection(all_trigrams)
         trigrams_plot_data.append(go.Scatter(
             x=x_trigrams,
@@ -103,6 +111,18 @@ def basic_plots_data_init():
             name=lang
         )
         )
+
+
+def digram_contour_data_init():
+    digram_contour.clear()
+    digram_contour.append(digrams_contour_diagram_init(None))  # todo - set lang
+
+
+def basic_plots_data_init():
+    letter_plot_data_init()
+    digram_plot_data_init()
+    trigram_plot_data_init()
+    digram_contour_data_init()
 
 
 def distinct_plot_data_init():
@@ -407,7 +427,7 @@ def update_active_languages(languages_to_activate):
               [Input('tools-languages', 'value')])
 def update_letters_graph(languages_to_activate):
     update_active_languages(languages_to_activate)
-    update_graphs_data()
+    letter_plot_data_init()
     return {
         'data': letters_plot_data,
         'layout': get_layout('common letters')
@@ -418,7 +438,7 @@ def update_letters_graph(languages_to_activate):
               [Input('tools-languages', 'value')])
 def update_letters_graph(languages_to_activate):
     update_active_languages(languages_to_activate)
-    update_graphs_data()
+    trigram_plot_data_init()
     return {
         'data': trigrams_plot_data,
         'layout': get_layout('trigrams')
@@ -429,17 +449,18 @@ def update_letters_graph(languages_to_activate):
               [Input('tools-languages', 'value')])
 def update_letters_graph(languages_to_activate):
     update_active_languages(languages_to_activate)
-    update_graphs_data()
+    distinct_plot_data_init()
     return {
         'data': distinct_letters_plot_data,
         'layout': get_layout('distinct letters')
     }
 
+
 @app.callback(Output('digrams-graph', 'figure'),
               [Input('tools-languages', 'value')])
 def update_letters_graph(languages_to_activate):
     update_active_languages(languages_to_activate)
-    update_graphs_data()
+    digram_plot_data_init()
     return {
         'data': digrams_plot_data,
         'layout': get_layout('digrams')
