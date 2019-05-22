@@ -275,7 +275,7 @@ def create_dashboard():
                     'upload file',
                     html.A('')
                 ]),
-                accept=".json",
+                accept=".json, .txt",
                 # Allow multiple files to be uploaded
                 multiple=True
             ),
@@ -371,14 +371,29 @@ if __name__ == '__main__':
               [Input('upload-data', 'contents')],
               [State('upload-data', 'filename'),
                State('upload-data', 'last_modified')])
-def add_external_language(list_of_contents, list_of_names, list_of_dates):
+def upload_file(list_of_contents, list_of_filenames, list_of_dates):
     if list_of_contents is not None:
         [
             parse_contents(c, n, d) for c, n, d in
-            zip(list_of_contents, list_of_names, list_of_dates)
+            zip(list_of_contents, list_of_filenames, list_of_dates)
         ]
 
     return get_available_languages()
+
+
+@app.callback(Output('text-input', 'value'),
+              [Input('upload-data', 'contents')],
+              [State('upload-data', 'filename'),
+               State('upload-data', 'last_modified')])
+def upload_file(list_of_contents, list_of_filenames, list_of_dates):
+    results = [""]
+    if list_of_contents is not None:
+        results = [
+            parse_contents(c, n, d) for c, n, d in
+            zip(list_of_contents, list_of_filenames, list_of_dates)
+        ]
+
+    return results[0]
 
 
 def update_active_languages(languages_to_activate):
@@ -458,7 +473,7 @@ def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
 
-    if 'json' in filename:
+    if '.json' in filename:
         # Assume that the user uploaded a JSON file
         language = filename.split('.')[0]
         if language in languages:
@@ -468,6 +483,10 @@ def parse_contents(contents, filename, date):
         languages.append(language)
         frequency = json.loads(decoded.decode('utf-8'))
         add_language_frequency(frequency, language)
+
+    if '.txt' in filename:
+        # Assume that the user uploaded a text file
+        return decoded.decode('utf-8')
 
 
 if __name__ == '__main__':
