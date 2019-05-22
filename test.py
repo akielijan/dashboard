@@ -6,10 +6,10 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
-from dash.development.base_component import Component
 
 frequencies = {}
-languages = ['english', 'polish', 'norwegian', 'finnish']
+languages = ['polish']
+active_languages = ['polish']
 widget_height = "300px"
 
 
@@ -75,7 +75,7 @@ def basic_plots_data_init():
     letters_plot_data.clear()
     digrams_plot_data.clear()
     trigrams_plot_data.clear()
-    for lang in languages:
+    for lang in active_languages:
         frequency = frequencies[lang]
         x_letters = get_intersection(all_letters)
         letters_plot_data.append(go.Scatter(
@@ -105,7 +105,7 @@ def basic_plots_data_init():
 
 def distinct_plot_data_init():
     distinct_letters_plot_data.clear()
-    for lang in languages:
+    for lang in active_languages:
         frequency = frequencies[lang]
         distinct_letters = get_difference(list(frequency['letters'].keys()), all_letters)
 
@@ -158,13 +158,20 @@ def detect_language(text: str) -> list:
     text = process_text(text)
     input_letter_frequency = get_letter_frequency(text)
     results = []
-    for lang in languages:
+    for lang in active_languages:
         error = get_error(input_letter_frequency, frequencies[lang]['letters'])
         results.append((lang, error))
     return sorted(results, key=lambda v: v[1])
 
 
 app = dash.Dash(__name__)
+
+
+def get_available_languages():
+    data = []
+    for language in list(frequencies.keys()):
+        data.append({"label": language, "value": language})
+    return data
 
 
 def create_dashboard():
@@ -182,13 +189,30 @@ def create_dashboard():
                 # Allow multiple files to be uploaded
                 multiple=True
             ),
-            dcc.Textarea(
-                id='text-input',
+            html.Div(
+                id='tools',
+                children=[
+                    dcc.Dropdown(
+                        id='tools-languages',
+                        options=get_available_languages(),
+                        value=active_languages,
+                        multi=True,
+                        placeholder="select languages"
+                    ),
+                ]
+            ),
+            html.Div(
+                id='textarea-wrapper',
+                children=[
+                    dcc.Textarea(
+                        id='text-input',
+                        placeholder="enter text to predict"
+                    )
+                ]
             ),
             html.Div(
                 id='detection-result'
             )
-
         ],
             className="widget right"
         ),
@@ -219,34 +243,6 @@ def create_dashboard():
     ]
 
 
-def test_detect_lang():
-    text = """
-    Sylkaisi et loydetty naisilla paissani ja en kaljaasi me. Nyt vei toi vedappas kaljaasi loistoja yhteensa. Seisomaan saa uteliaina ajaisivat tuo pohjineen osa tarpeemme tyrskahti. Suomuakaan tuo kaksisataa ankkurinne kas eli oikeastaan jos. Ommella suoraan poistaa vai lie ilmalla eli aikomus. Muilla puolin kalpea han kas kutsui toi isa. Kysymyksen nykyisista pysahtyvan te kuitenkaan ja on. Tuvan loi jaa voi helga minun tuo. Oma teille matkan isa pitipa nytkin nakyja. 
-
-Et ai eihan meren viron mikas tytto menen ai. Talla sai nyt loi lie minun hokee sehan. On taakseen loytavat rinnalla pyorahti en sinunkin ei se. Leikiksi pystyssa se se loydetty. Te ne usein puoli paiva moisi juuri ei me. Ja koettaen paattaen kuljemme en se hinnalla on kymmenta kaljaasi. Seinamalle palkkioksi ja ne he suurtakaan no. Koetakaan on jalkeensa haaveensa se paljonkos kuvitella. Puutavaraa isa han kahvipannu tee suomuakaan liikkeelle tuommoinen rikastunut. Ne herran pitipa ryssan on summan edessa ei tuohon. 
-
-Tai ryypattiin iso loi luulikohan uteliaasti vietavaksi. Papalla potkaus ja ne sentaan minulta. He no enhan mikas jotta lisaa usvaa mutta. Han tuhansia rukoilen isa rakentaa oli. Yha ero tupa noin tai jos toru. Kuului ryskaa ne et se huulet. Tosissaan tai haaveensa hymahtaen kay voi vai. Palkkioksi toi suurtakaan luo kaljamalla tuo minullekin hiljaisuus. 
-
-Rikastunut he patriarkat nuottikota ei. Muut no puhu se itku. Kerrallaan ansioitaan me on voitaisiin sisimpansa harrykoita te et pannaksesi. Pysahtyvan nuottikota tarkoittaa oikeastaan ai ei ai on. On ai pilkkanaan moottoriin nykyaikana lainaamaan se et. Ai poikimatta tuommoinen sisimpansa ne ai karahtanut moottoriin. Jos kesat jalat tulee tuo toi milla tahan. Elamassani muutettuna ero hartaimman tuo nykyisista pyyhkimaan purjelaiva. Suurtakaan kuitenkaan vatvotusta voitaisiin vakituiset ja et no kokonainen. Tarpeeksi kasvoilla en taallakin olevinasi se tehnytkin puuskahti. 
-
-Kaksisataa luulikohan viinaelake naamallasi en ai. Terve antoi on ei hanhi kadet olisi huvin. Jos vai rakentaa tietysti paivassa ela vanhakin nostivat rahaakin. Maksaa ei heinia ulapan muista voinut ai joutuu. Ne kohta liene on onkin esiin. Osaat vanha missa te se he mista en. 
-
-Satun pthyi jo muuta ai ei kesan. Kaikilla vie poydalle muutakin isa anteeksi miehensa sahvoori ota tee. Tahankin miehensa ja ai et maksavan se kummitus kuolleen. Ruumiin loi ota muutkin merille otappas. Vei iso han ryyppasin kai rahasumma kalpeista. On koetakaan loytamaan osaamatta ne oljytakki kuunnella kuvitella ei. Totisesti oli noutamaan vuoteensa kas tarpeemme millainen ainaisena. Tyttarenne jos kuolleelta kai vieraankin voitaisiin tarkoittaa kaupunkiin. Toisia en ja puista mikaan soutaa. 
-
-Sina lapi on vaan pysy tein paha en. Se koetakaan kaksikaan ja kaantynyt. Ruuhen en toinen ai lausui. Ryyppasin pienoinen punastuen kalpeista on semmoisia me ikaankuin se. Kaupunkiin hartioilla sen ota tuo nelikoihin jai puheenaihe. Sanoo helga ai jo mikas joulu. Se pohjineen no kastettua majakoita ja jalkaansa ukkovaari menemista. Punastuen ai me no tervehtii huonoista teistakin. Hyvastinsa oli seinamalle lie voi tuommoinen. Sai vastannut vahintain nae osaamatta tuo oli. 
-
-Heidan taalla taisin nae jos vei. Ja hinnalla ne varjossa poskille entisina ei kutukala. Nalkainen rannoille he saariston semmoinen ne. Naemme nyt oma taisin valiin. Sen ostaa voi olipa sinun vei nyt astui hahah. Juova jos osaat jai sen eri menet. Ehka vei kuka ukko lie heti sai vaan. Me kurkkuun en sylkaisi jaanytta ne luulkoon. En on sisimpansa toivottiin se minullekin hartaimman. 
-
-Aiotte lapsia jai meille jos paitse juonut eli. On tama no ai enka meni se vesi. Pyyhkia aitinsa en anastaa te tuvasta et menevan. No tuhattakin ja miinavenhe kaljamalla vatvotusta. Tayden sen heitti joutuu sylkea eli nyt kay. Tee kuivempaan kohdallani nae jaa osa sittenkuin tarvitsisi. 
-
-Kayda jokin me laine malja tasta se ei viela. Taallakin paljonkos ei ne mihinkaan uteliaina merirosvo et sammuttaa jo. Ensin pitaa hanet he ne uskon on se. Totisesti he me majakoita istahtaen. Toi uteliaina haaveensa varsinkin sen. Musta tai ota onkin suusi salin. Mitenka ne ymmarra viisiin nousisi he. 
-
-
-    """
-    print(detect_language(text))
-    pass
-
-
 if __name__ == '__main__':
     all_letters = []
     all_digrams = []
@@ -263,19 +259,23 @@ if __name__ == '__main__':
         children=create_dashboard()
     )
 
-    test_detect_lang()
-
 
 @app.callback(Output('main-div', 'children'),
-              [Input('upload-data', 'contents')],
+              [Input('upload-data', 'contents'),
+               Input('tools-languages', 'value')],
               [State('upload-data', 'filename'),
                State('upload-data', 'last_modified')])
-def update_output(list_of_contents, list_of_names, list_of_dates):
+def add_external_language(list_of_contents, languages_data, list_of_names, list_of_dates):
     if list_of_contents is not None:
         [
             parse_contents(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates)
         ]
+    else:
+        if languages_data is not None:
+            active_languages.clear()
+            for lang in languages_data:
+                active_languages.append(lang)
 
     return create_dashboard()
 
@@ -286,7 +286,7 @@ def format_results(result: list):
     for i in range(min(3, len(result))):
         lang, error = result[i]
         components.append(
-            html.Li("{} {}".format(str(lang).capitalize(), float(error)))
+            html.Li("{0} {1:.2f}".format(str(lang).capitalize(), float(error)))
         )
     ol.children = components
     return ol
