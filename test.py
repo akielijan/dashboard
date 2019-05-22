@@ -123,43 +123,95 @@ def distinct_plot_data_init():
 
 def process_text(text: str) -> str:
     processed = text.lower()
-    pattern = re.compile(r"[^a-zA-ZÀ-ž]")
+    pattern = re.compile(r"[^a-zA-ZÀ-ž ]")
     processed = re.sub(pattern, "", processed)
     return processed
 
 
 def get_letter_frequency(text: str) -> dict:
     freq = {}
+    length = 0
     for letter in text:
+        if letter.isspace():
+            continue
+
+        length += 1
+
         if letter not in freq:
             freq[letter] = 1
         else:
             freq[letter] += 1
 
-    text_length = len(text)
     for key in freq:
-        freq[key] /= text_length
+        freq[key] /= length
+    return freq
+
+
+def get_digram_frequency(text: str) -> dict:
+    freq = {}
+    length = 0
+    for i in range(len(text)-1):
+        if text[i].isspace() or text[i+1].isspace():
+            continue
+
+        length += 1
+
+        digram = text[i] + text[i+1]
+        if digram not in freq:
+            freq[digram] = 1
+        else:
+            freq[digram] += 1
+
+    for key in freq:
+        freq[key] /= length
+    return freq
+
+
+def get_trigram_frequency(text: str) -> dict:
+    freq = {}
+    length = 0
+    for i in range(len(text) - 2):
+        if text[i].isspace() or text[i + 1].isspace() or text[i + 2].isspace():
+            continue
+
+        length += 1
+        trigram = text[i] + text[i + 1] + text[i + 2]
+        if trigram not in freq:
+            freq[trigram] = 1
+        else:
+            freq[trigram] += 1
+
+    for key in freq:
+        freq[key] /= length
     return freq
 
 
 def get_error(input_freq: dict, lang_freq: dict) -> float:
     result = 0.0
-    for character in input_freq:
-        occurrences_in_text = input_freq[character]
+    for key in input_freq:
+        occurrences_in_text = input_freq[key]
         occurrences_in_lang = 0.0
-        if character in lang_freq:
-            occurrences_in_lang = lang_freq[character]
+        if key in lang_freq:
+            occurrences_in_lang = lang_freq[key]
 
         result += pow(occurrences_in_lang - occurrences_in_text, 2)
     return result
 
 
-def detect_language(text: str) -> list:
+def detect_language(text: str, level=1) -> list:
     text = process_text(text)
-    input_letter_frequency = get_letter_frequency(text)
     results = []
     for lang in active_languages:
-        error = get_error(input_letter_frequency, frequencies[lang]['letters'])
+        error = 0
+        if level >= 1:
+            input_letter_frequency = get_letter_frequency(text)
+            error += get_error(input_letter_frequency, frequencies[lang]['letters'])
+        if level >= 2:
+            input_digram_frequency = get_digram_frequency(text)
+            error += get_error(input_digram_frequency, frequencies[lang]['digrams'])
+        if level >= 3:
+            input_trigram_frequency = get_trigram_frequency(text)
+            error += get_error(input_trigram_frequency, frequencies[lang]['trigrams'])
         results.append((lang, error))
     return sorted(results, key=lambda v: v[1])
 
@@ -174,6 +226,39 @@ def get_available_languages():
     return data
 
 
+def digrams_contour_diagram_init(lang='polish'):
+    z = []
+    if lang is None or len(lang) == 0:
+        if len(active_languages) > 0:
+            fr = frequencies[active_languages[0]]
+        else:  # dummy data
+            fr = {"letters": {}, "digrams": {}, "trigrams": {}}
+    else:
+        fr = frequencies[lang]
+    alphabet = list(fr['letters'].keys())
+    alphabet.sort()
+    for second_letter in alphabet:
+        row = []
+        for first_letter in alphabet:
+            dg = first_letter + second_letter
+            if dg not in fr['digrams']:
+                row.append(0)
+            else:
+                row.append(fr['digrams'][dg])
+        z.append(list(row))
+
+    data = [
+        go.Contour(
+            x=alphabet,
+            y=alphabet,
+            z=z,
+            colorscale='Jet'
+        )
+    ]
+
+    return data
+
+
 def update_graphs_data():
     basic_plots_data_init()
     distinct_plot_data_init()
@@ -181,6 +266,7 @@ def update_graphs_data():
 
 def create_dashboard():
     update_graphs_data()
+    digram_contour = digrams_contour_diagram_init(None)
     return [
         html.Div(children=[
             dcc.Upload(
@@ -326,6 +412,18 @@ def format_results(result: list):
     return ["prediction result"]
 
 
+# def format_results(result: list):
+#     ol = html.Ol()
+#     components = []
+#     for i in range(min(3, len(result))):
+#         lang, error = result[i]
+#         components.append(
+#             html.Li("{0} {1:.2f}".format(str(lang).capitalize(), 1-float(error)))
+#         )
+#     ol.children = components
+#     return ol
+
+
 @app.callback(Output('detection-result', 'children'),
               [Input('text-input', 'value')])
 def do_language_detection(contents):
@@ -334,7 +432,7 @@ def do_language_detection(contents):
         pass
         # clear
     else:
-        result = detect_language(contents)
+        result = detect_language(contents, 3)
         print(result[0])
 
     return format_results(result)
