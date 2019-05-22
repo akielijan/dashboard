@@ -174,9 +174,13 @@ def get_available_languages():
     return data
 
 
-def create_dashboard():
+def update_graphs_data():
     basic_plots_data_init()
     distinct_plot_data_init()
+
+
+def create_dashboard():
+    update_graphs_data()
     return [
         html.Div(children=[
             dcc.Upload(
@@ -225,12 +229,12 @@ def create_dashboard():
             className="widget left non-transparent"
         ),
         dcc.Graph(
-            id='super-graph',
+            id='digrams-graph',
             figure={
                 'data': digrams_plot_data,
                 'layout': get_layout('digrams')
             },
-            className="widget right non-transparent"
+            className="widget left non-transparent"
         ),
         dcc.Graph(
             id='distinct-graph',
@@ -238,7 +242,7 @@ def create_dashboard():
                 'data': distinct_letters_plot_data,
                 'layout': get_layout('distinct letters')
             },
-            className="widget left non-transparent"
+            className="widget right non-transparent"
         )
     ]
 
@@ -260,24 +264,57 @@ if __name__ == '__main__':
     )
 
 
-@app.callback(Output('main-div', 'children'),
-              [Input('upload-data', 'contents'),
-               Input('tools-languages', 'value')],
+@app.callback(Output('tools-languages', 'options'),
+              [Input('upload-data', 'contents')],
               [State('upload-data', 'filename'),
                State('upload-data', 'last_modified')])
-def add_external_language(list_of_contents, languages_data, list_of_names, list_of_dates):
+def add_external_language(list_of_contents, list_of_names, list_of_dates):
     if list_of_contents is not None:
         [
             parse_contents(c, n, d) for c, n, d in
             zip(list_of_contents, list_of_names, list_of_dates)
         ]
-    else:
-        if languages_data is not None:
-            active_languages.clear()
-            for lang in languages_data:
-                active_languages.append(lang)
 
-    return create_dashboard()
+    return get_available_languages()
+
+
+def update_active_languages(languages_to_activate):
+    if languages_to_activate is not None and sorted(languages_to_activate) != sorted(active_languages):
+        active_languages.clear()
+        for language_to_activate in languages_to_activate:
+            active_languages.append(language_to_activate)
+
+
+@app.callback(Output('letters-graph', 'figure'),
+              [Input('tools-languages', 'value')])
+def update_letters_graph(languages_to_activate):
+    update_active_languages(languages_to_activate)
+    update_graphs_data()
+    return {
+        'data': letters_plot_data,
+        'layout': get_layout('common letters')
+    }
+
+
+@app.callback(Output('distinct-graph', 'figure'),
+              [Input('tools-languages', 'value')])
+def update_letters_graph(languages_to_activate):
+    update_active_languages(languages_to_activate)
+    update_graphs_data()
+    return {
+        'data': distinct_letters_plot_data,
+        'layout': get_layout('distinct letters')
+    }
+
+@app.callback(Output('digrams-graph', 'figure'),
+              [Input('tools-languages', 'value')])
+def update_letters_graph(languages_to_activate):
+    update_active_languages(languages_to_activate)
+    update_graphs_data()
+    return {
+        'data': digrams_plot_data,
+        'layout': get_layout('digrams')
+    }
 
 
 def format_results(result: list):
