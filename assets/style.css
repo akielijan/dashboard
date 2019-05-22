@@ -1,7 +1,7 @@
 ::-webkit-input-placeholder {
     color: darkgray;
     text-align: center;
-    line-height: 170px;
+    line-height: 155px;
 }
 
 .widget {
@@ -28,13 +28,13 @@
 #textarea-wrapper {
     width: 47.5%;
     margin-top: 20px;
-    height: 165px;
+    height: 175px;
     float: left;
 }
 
 textarea {
     width: 100%;
-    height: 165px;
+    height: 155px;
     border-width: 1px;
     border-style: solid;
     border-radius: 5px;
@@ -64,9 +64,13 @@ textarea {
     float: right;
     width: 47.5%;
     margin-top: 20px;
-    height: 165px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+    height: 175px;
     color: darkgray;
-    line-height: 25px;
+    line-height: 175px;
+    text-align: center;
 }
 
 #tools {

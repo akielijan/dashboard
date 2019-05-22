@@ -281,15 +281,12 @@ def add_external_language(list_of_contents, languages_data, list_of_names, list_
 
 
 def format_results(result: list):
-    ol = html.Ol()
-    components = []
-    for i in range(min(3, len(result))):
-        lang, error = result[i]
-        components.append(
-            html.Li("{0} {1:.2f}".format(str(lang).capitalize(), float(error)))
-        )
-    ol.children = components
-    return ol
+    if result is not None and len(result) > 0:
+        lang, error = result[0]
+        # html.Li("{0} {1:.2f}".format(str(lang).capitalize(), float(error)))
+        return [lang]
+
+    return ["prediction result"]
 
 
 @app.callback(Output('detection-result', 'children'),
