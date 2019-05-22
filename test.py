@@ -6,6 +6,7 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output, State
+from dash.development.base_component import Component
 
 frequencies = {}
 languages = ['english', 'polish', 'norwegian', 'finnish']
@@ -183,6 +184,9 @@ def create_dashboard():
             ),
             dcc.Textarea(
                 id='text-input',
+            ),
+            html.Div(
+                id='detection-result'
             )
 
         ],
@@ -276,6 +280,32 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
     return create_dashboard()
 
 
+def format_results(result: list):
+    ol = html.Ol()
+    components = []
+    for i in range(min(3, len(result))):
+        lang, error = result[i]
+        components.append(
+            html.Li("{} {}".format(str(lang).capitalize(), float(error)))
+        )
+    ol.children = components
+    return ol
+
+
+@app.callback(Output('detection-result', 'children'),
+              [Input('text-input', 'value')])
+def do_language_detection(contents):
+    result = []
+    if contents is None or len(contents) == 0:
+        pass
+        # clear
+    else:
+        result = detect_language(contents)
+        print(result[0])
+
+    return format_results(result)
+
+
 def parse_contents(contents, filename, date):
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
@@ -284,7 +314,7 @@ def parse_contents(contents, filename, date):
         # Assume that the user uploaded a JSON file
         language = filename.split('.')[0]
         if language in languages:
-            #todo: alert for user or sth
+            # todo: alert for user or sth
             print("Can't add existing language")
             return
         languages.append(language)
