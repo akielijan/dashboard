@@ -1,0 +1,47 @@
+.widget {
+    width: 45%;
+    height: 300px;
+    margin-top: 20px;
+}
+
+.non-transparent {
+    -webkit-box-shadow: 0px 0px 36px -15px rgba(0,0,0,0.36);
+    background-color: white;
+}
+
+.right {
+    margin-right: 4%;
+    float: right;
+}
+
+.left {
+    margin-left: 4%;
+    float: left;
+}
+
+textarea {
+    width: 45%;
+    margin-top: 20px;
+    height: 170px;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 5px;
+    border-color: darkgray;
+    color: darkgray;
+    text-align: left;
+    resize: none;
+    placeholder: "enter text to predict";
+}
+
+#upload-data {
+    width: 45%;
+    height: 100px;
+    line-height: 100px;
+    border-width: 1px;
+    border-style: dashed;
+    border-radius: 5px;
+    border-color: darkgray;
+    color: darkgray;
+    cursor: pointer;
+    text-align: center;
+}

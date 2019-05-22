@@ -177,46 +177,16 @@ def create_dashboard():
                     'upload file',
                     html.A('')
                 ]),
-                style={
-                    'width': '45%',
-                    'height': '100px',
-                    'lineHeight': '100px',
-                    'borderWidth': '1px',
-                    'borderStyle': 'dashed',
-                    'borderRadius': '5px',
-                    'border-color': "darkgray",
-                    'color': "darkgray",
-                    'cursor': "pointer",
-                    'textAlign': 'center',
-                },
                 accept=".json",
                 # Allow multiple files to be uploaded
                 multiple=True
             ),
             dcc.Textarea(
                 id='text-input',
-                style={
-                    'width': '100%',
-                    'margin-top': "20px",
-                    'height': '180px',
-                    'borderWidth': '1px',
-                    'borderStyle': 'solid',
-                    'borderRadius': '5px',
-                    'border-color': "darkgray",
-                    'color': "darkgray",
-                    'textAlign': 'left',
-                    'resize': "none"
-                },
             )
 
         ],
-            style={
-                'width': '45%',
-                'height': '300px',
-                'margin-right': "4%",
-                'margin-top': "20px",
-                'float': "right",
-            },
+            className="widget right"
         ),
         dcc.Graph(
             id='letters-graph',
@@ -224,15 +194,7 @@ def create_dashboard():
                 'data': letters_plot_data,
                 'layout': get_layout('common letters')
             },
-            style={
-                'margin-top': "20px",
-                'width': "45%",
-                'height': widget_height,
-                'float': "left",
-                'margin-left': "4%",
-                'background-color': "white",
-                '-webkit-box-shadow': "0px 0px 36px -15px rgba(0,0,0,0.36)",
-            },
+            className="widget left non-transparent"
         ),
         dcc.Graph(
             id='super-graph',
@@ -240,15 +202,7 @@ def create_dashboard():
                 'data': digrams_plot_data,
                 'layout': get_layout('digrams')
             },
-            style={
-                'width': "45%",
-                'height': widget_height,
-                'float': "right",
-                'margin-right': "4%",
-                'margin-top': "20px",
-                'background-color': "white",
-                '-webkit-box-shadow': "0px 0px 36px -15px rgba(0,0,0,0.36)",
-            },
+            className="widget right non-transparent"
         ),
         dcc.Graph(
             id='distinct-graph',
@@ -256,15 +210,7 @@ def create_dashboard():
                 'data': distinct_letters_plot_data,
                 'layout': get_layout('distinct letters')
             },
-            style={
-                'width': "45%",
-                'height': widget_height,
-                'background-color': "white",
-                'margin-top': "20px",
-                'margin-left': "4%",
-                'float': "left",
-                '-webkit-box-shadow': "0px 0px 36px -15px rgba(0,0,0,0.36)",
-            },
+            className="widget left non-transparent"
         )
     ]
 
