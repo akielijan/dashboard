@@ -75,6 +75,8 @@ def basic_plots_data_init():
     letters_plot_data.clear()
     digrams_plot_data.clear()
     trigrams_plot_data.clear()
+    digram_contour.clear()
+    digram_contour.append(digrams_contour_diagram_init(None))
     for lang in active_languages:
         frequency = frequencies[lang]
         x_letters = get_intersection(all_letters)
@@ -247,14 +249,12 @@ def digrams_contour_diagram_init(lang='polish'):
                 row.append(fr['digrams'][dg])
         z.append(list(row))
 
-    data = [
-        go.Contour(
+    data = go.Contour(
             x=alphabet,
             y=alphabet,
             z=z,
             colorscale='Jet'
         )
-    ]
 
     return data
 
@@ -266,7 +266,7 @@ def update_graphs_data():
 
 def create_dashboard():
     update_graphs_data()
-    digram_contour = digrams_contour_diagram_init(None)
+
     return [
         html.Div(children=[
             dcc.Upload(
@@ -329,6 +329,22 @@ def create_dashboard():
                 'layout': get_layout('distinct letters')
             },
             className="widget right non-transparent"
+        ),
+        dcc.Graph(
+            id='trigrams-graph',
+            figure={
+                'data': trigrams_plot_data,
+                'layout': get_layout('trigrams')
+            },
+            className="widget left non-transparent"
+        ),
+        dcc.Graph(
+            id='contour-graph',
+            figure={
+                'data': digram_contour,
+                'layout': get_layout('distinct letters')
+            },
+            className="widget right non-transparent"
         )
     ]
 
@@ -339,6 +355,7 @@ if __name__ == '__main__':
     all_trigrams = []
     init()
 
+    digram_contour = []
     letters_plot_data = []
     digrams_plot_data = []
     trigrams_plot_data = []
@@ -382,6 +399,17 @@ def update_letters_graph(languages_to_activate):
     }
 
 
+@app.callback(Output('trigrams-graph', 'figure'),
+              [Input('tools-languages', 'value')])
+def update_letters_graph(languages_to_activate):
+    update_active_languages(languages_to_activate)
+    update_graphs_data()
+    return {
+        'data': trigrams_plot_data,
+        'layout': get_layout('trigrams')
+    }
+
+
 @app.callback(Output('distinct-graph', 'figure'),
               [Input('tools-languages', 'value')])
 def update_letters_graph(languages_to_activate):
@@ -410,18 +438,6 @@ def format_results(result: list):
         return [lang]
 
     return ["prediction result"]
-
-
-# def format_results(result: list):
-#     ol = html.Ol()
-#     components = []
-#     for i in range(min(3, len(result))):
-#         lang, error = result[i]
-#         components.append(
-#             html.Li("{0} {1:.2f}".format(str(lang).capitalize(), 1-float(error)))
-#         )
-#     ol.children = components
-#     return ol
 
 
 @app.callback(Output('detection-result', 'children'),
