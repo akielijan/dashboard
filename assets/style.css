@@ -10,6 +10,16 @@
     margin-top: 20px;
 }
 
+.last {
+    margin-bottom: 20px;
+}
+
+.big-widget {
+    width: 45%;
+    height: 500px;
+    margin-top: 20px;
+}
+
 .non-transparent {
     -webkit-box-shadow: 0px 0px 36px -15px rgba(0,0,0,0.36);
     background-color: white;
@@ -78,7 +88,4 @@ textarea {
     width: 47.5%;
     height: 102px;
     font-size: 10px;
-}
-
-#contour-div {
 }

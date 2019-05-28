@@ -10,6 +10,7 @@ from dash.dependencies import Input, Output, State
 frequencies = {}
 languages = ['polish']
 active_languages = ['polish']
+last_updated_languages = []
 widget_height = "300px"
 
 
@@ -303,7 +304,7 @@ def create_dashboard():
                         options=get_available_languages(),
                         value=active_languages,
                         multi=True,
-                        placeholder="select languages"
+                        placeholder="select languages to activate"
                     ),
                 ]
             ),
@@ -352,26 +353,29 @@ def create_dashboard():
                 'data': trigrams_plot_data,
                 'layout': get_layout('trigrams')
             },
-            className="widget left non-transparent"
+            className="big-widget left non-transparent last"
         ),
         html.Div(
             id='contour-div',
-            className="widget right non-transparent",
+            className="big-widget right non-transparent last",
             children=[
                 dcc.Dropdown(
                     id='contour-language',
+                    style={"height": "40px"},
                     options=get_available_languages(),
+                    value=active_languages[0],
                     multi=False,
                     placeholder="select language for digram contour"
                 ),
                 dcc.Graph(
                     id='contour-graph',
+                    style={"height": "460px"},
                     figure={
                         'data': digram_contour,
                         'layout': get_layout('contour digrams')
                     },
                 )
-            ])
+            ]),
     ]
 
 
@@ -392,12 +396,21 @@ if __name__ == '__main__':
         children=create_dashboard()
     )
 
+@app.callback(Output('tools-languages', 'value'),
+              [Input('tools-languages', 'options')])
+def display_confirm(available_languages):
+    for language in last_updated_languages:
+        if language not in active_languages:
+            active_languages.append(language)
+    last_updated_languages.clear()
+    return active_languages
+
 
 @app.callback(Output('tools-languages', 'options'),
               [Input('upload-data', 'contents')],
               [State('upload-data', 'filename'),
                State('upload-data', 'last_modified')])
-def upload_file(list_of_contents, list_of_filenames, list_of_dates):
+def upload_json_file(list_of_contents, list_of_filenames, list_of_dates):
     if list_of_contents is not None:
         [
             parse_contents(c, n, d) for c, n, d in
@@ -417,7 +430,7 @@ def update_languages_for_contour(_):
               [Input('upload-data', 'contents')],
               [State('upload-data', 'filename'),
                State('upload-data', 'last_modified')])
-def upload_file(list_of_contents, list_of_filenames, list_of_dates):
+def upload_txt_file(list_of_contents, list_of_filenames, list_of_dates):
     results = [""]
     if list_of_contents is not None:
         results = [
@@ -526,6 +539,7 @@ def parse_contents(contents, filename, date):
         languages.append(language)
         frequency = json.loads(decoded.decode('utf-8'))
         add_language_frequency(frequency, language)
+        last_updated_languages.append(language)
 
     if '.txt' in filename:
         # Assume that the user uploaded a text file
