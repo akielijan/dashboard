@@ -113,9 +113,9 @@ def trigram_plot_data_init():
         )
 
 
-def digram_contour_data_init():
+def digram_contour_data_init(lang=None):
     digram_contour.clear()
-    digram_contour.append(digrams_contour_diagram_init(None))  # todo - set lang
+    digram_contour.append(digrams_contour_diagram_init(lang))
 
 
 def basic_plots_data_init():
@@ -248,13 +248,10 @@ def get_available_languages():
     return data
 
 
-def digrams_contour_diagram_init(lang='polish'):
+def digrams_contour_diagram_init(lang=None):
     z = []
     if lang is None or len(lang) == 0:
-        if len(active_languages) > 0:
-            fr = frequencies[active_languages[0]]
-        else:  # dummy data
-            fr = {"letters": {}, "digrams": {}, "trigrams": {}}
+        fr = {"letters": {}, "digrams": {}, "trigrams": {}}
     else:
         fr = frequencies[lang]
     alphabet = list(fr['letters'].keys())
@@ -286,7 +283,6 @@ def update_graphs_data():
 
 def create_dashboard():
     update_graphs_data()
-
     return [
         html.Div(children=[
             dcc.Upload(
@@ -358,14 +354,24 @@ def create_dashboard():
             },
             className="widget left non-transparent"
         ),
-        dcc.Graph(
-            id='contour-graph',
-            figure={
-                'data': digram_contour,
-                'layout': get_layout('distinct letters')
-            },
-            className="widget right non-transparent"
-        )
+        html.Div(
+            id='contour-div',
+            className="widget right non-transparent",
+            children=[
+                dcc.Dropdown(
+                    id='contour-language',
+                    options=get_available_languages(),
+                    multi=False,
+                    placeholder="select language for digram contour"
+                ),
+                dcc.Graph(
+                    id='contour-graph',
+                    figure={
+                        'data': digram_contour,
+                        'layout': get_layout('contour digrams')
+                    },
+                )
+            ])
     ]
 
 
@@ -401,6 +407,12 @@ def upload_file(list_of_contents, list_of_filenames, list_of_dates):
     return get_available_languages()
 
 
+@app.callback(Output('contour-language', 'options'),
+              [Input('upload-data', 'contents')])
+def update_languages_for_contour(_):
+    return get_available_languages()
+
+
 @app.callback(Output('text-input', 'value'),
               [Input('upload-data', 'contents')],
               [State('upload-data', 'filename'),
@@ -421,6 +433,16 @@ def update_active_languages(languages_to_activate):
         active_languages.clear()
         for language_to_activate in languages_to_activate:
             active_languages.append(language_to_activate)
+
+
+@app.callback(Output('contour-graph', 'figure'),
+              [Input('contour-language', 'value')])
+def update_contour_graph(lang):
+    digram_contour_data_init(lang)
+    return {
+        'data': digram_contour,
+        'layout': get_layout('contour digrams')
+    }
 
 
 @app.callback(Output('letters-graph', 'figure'),
